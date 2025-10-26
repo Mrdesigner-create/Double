@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Double photoes — Editor with Zoom+Pan Crop</title>
+
+    <style>
+        /* --- 1. CSS STYLES --- */
+
+        /* General Setup */
+        body {
+            background-color: #f4f4f9;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            box-sizing: border-box;
+            margin: 0;
+        }
+
+        /* Wrapper for all pages (keeps them centered) */
+        #page-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        /* --- PAPER SIZING DEFINITIONS --- */
+        .a4-page { width: 210mm; min-height: 297mm; }
+        .a5-page { width: 148mm; min-height: 210mm; }
+        .a6-page { width: 105mm; min-height: 148mm; }
+        .us-letter-page { width: 8.5in; min-height: 11in; }
+
+        .a4-page, .a5-page, .a6-page, .us-letter-page {
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            background-color: white;
+            margin-bottom: 20px;
+            padding: 10mm;
+            box-sizing: border-box;
+        }
+
+        /* Controls Panel: Fixed position for non-print view */
+        .controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            background-color: #ecf0f1;
+            border: 1px solid #bdc3c7;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            z-index: 10000;
+            max-width: 320px;
+            text-align: center;
+            overflow: visible;
+            transition: all 0.3s ease;
+        }
+
+      /* --- 1. CSS STYLES --- */
+
+/* General Setup */
+body {
+    background-color: whitesmoke;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    box-sizing: border-box;
+    margin: 0;
+}
+
+/* Wrapper for all pages (keeps them centered) */
+#page-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+/* --- PAPER SIZING DEFINITIONS --- */
+.a4-page { width: 210mm; min-height: 297mm; }
+.a5-page { width: 148mm; min-height: 210mm; }
+.a6-page { width: 105mm; min-height: 148mm; }
+.us-letter-page { width: 8.5in; min-height: 11in; }
+
+.a4-page, .a5-page, .a6-page, .us-letter-page {
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    background-color: white;
+    margin-bottom: 20px;
+    padding: 10mm;
+    box-sizing: border-box;
+}
+
+/* Controls Panel: Fixed position for non-print view */
+.controls {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px;
+    background-color: lightgray;
+    border: 1px solid gray;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    z-index: 10000;
+    max-width: 320px;
+    text-align: center;
+    overflow: visible;
+    transition: all 0.3s ease;
+}
+
+/* Style for the Hide/Show Toggle Button */
+#toggle-controls-btn {
+    position: absolute;
+    top: 0;
+    left: -30px;
+    height: 35px;
+    width: 30px;
+    padding: 0;
+    border: 1px solid gray;
+    border-right: none;
+    cursor: pointer;
+    font-size: 14px;
+    background: linear-gradient(to bottom right, green, lightgreen);
+    transition: background 0.8s ease-in-out;
+    color: red;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    box-shadow: -2px 0 4px rgba(0,0,0,0.1);
+}
+
+
+
+
+
+
+/* Button styled like your controls */
+#toggle-bg-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: yellow; /* ✅ Changed to yellow */
+    border: 1px solid gray;
+    color: black;
+   
+}
+
+
+
+
+
+#toggle-bg-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: yellow !important; /* ✅ Force yellow color */
+    border: 1px solid #bdc3c7;
+   
+    font-size: 14px;
+    padding: 10px 16px;
+    border-radius: 6px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    cursor: pointer;
+    z-index: 10001;
+    transition: all 0.3s ease;
+}
+
+#toggle-bg-btn:hover {
+    background-color: #dcdde1;
+    transform: scale(1.03);
+}
+
+
+
+
+
+
+
+/* Hide/Show content */
+#controls-content.hidden {
+    display: none;
+}
+
+.controls button, 
+.controls select, 
+.controls input[type="number"], 
+.controls input[type="range"] {
+    padding: 8px 12px;
+    margin: 6px 0;
+    border: 1px solid lightgray;
+    cursor: pointer;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.controls h4 { margin: 10px 0 5px; }
+
+#multi-upload-btn { background-color: darkblue; color: white; border: none; }
+#single-upload-btn { background-color: darkgreen; color: white; border: none; }
+#print-btn { background-color: dodgerblue; color: white; margin-top: 15px; border: none; }
+
+/* Grid Layout */
+.grid-container {
+    display: grid;
+    gap: 0.5mm; /* Thin white line between photos */
+    width: 100%;
+}
+
+/* Individual Box Styles */
+.box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    background-color: black;
+    position: relative;
+    border: 0.5pt solid black;
+    box-sizing: border-box;
+    color: ;
+    font-size: 0.8em;
+    cursor: pointer;
+    width: 35mm;
+    height: 45mm;
+}
+
+/* Image Display and Cropping */
+.box-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Highlight selected photo */
+.box.selected {
+    border: 2px solid red !important;
+    outline: 2px solid red;
+}
+
+/* Hidden file inputs */
+.hidden-input { display: none; }
+
+/* --- MODAL FOR EDITING/MANAGEMENT --- */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 20000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 4% auto;
+    padding: 16px;
+    border: 1px solid gray;
+    width: 92%;
+    max-width: 860px;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    text-align: left;
+    position: relative;
+}
+
+.modal-buttons {
+    margin-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+#delete-btn { background-color: red; color: white; padding: 10px 14px; border: none; }
+#replace-btn { background-color: orange; color: white; padding: 10px 14px; border: none; }
+#close-modal-btn { background-color: darkslategray; color: white; padding: 10px 14px; border: none; }
+#save-edit-btn { background-color: green; color: white; padding: 10px 14px; border: none; }
+
+/* Editor area */
+.editor-wrapper {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+.editor-canvas-frame {
+    width: calc(35mm * 2.2);
+    height: calc(45mm * 2.2);
+    background: lightgray;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid gray;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.editor-image {
+    position: absolute;
+    transform-origin: center center;
+    will-change: transform;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-drag: none;
+    max-width: none;
+    max-height: none;
+}
+.editor-controls {
+    min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.small-note { font-size: 13px; color: dimgray; margin-top: 6px; }
+
+/* --- PRINT STYLES --- */
+@media print {
+    .controls, .modal, #toggle-controls-btn { display: none; }
+    body { padding: 0; background-color: white; }
+
+    .a4-page, .a5-page, .a6-page, .us-letter-page {
+        width: auto !important;
+        min-height: auto !important;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        page-break-after: always;
+    }
+
+    .box { border: 0.5pt solid black !important; background-color: white !important; cursor: default; }
+    .box span, .box.selected { display: none !important; border: 0.5pt solid black !important; outline: none !important; }
+
+    .grid-container { gap: 0.5mm !important; }
+
+    @page { margin: 0; }
+}
+
+
+
+
+		
+		
+		
+/* Background image mode */
+body.bg-image {
+    background: url('https://mrdesigner-create.github.io/photoes/Beautiful-Rose.jpg') center/cover no-repeat fixed !important;
+}
+
+/* Default gradient background */
+body {
+    background: linear-gradient(to bottom right, skyblue, #ff4b4b);
+    transition: background 0.8s ease-in-out;
+}
+
+/* Button styled like your controls */
+#toggle-bg-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: #ecf0f1;
+    border: 1px solid #bdc3c7;
+    color: #2c3e50;
+    font-size: 14px;
+    padding: 10px 16px;
+    border-radius: 6px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    cursor: pointer;
+    z-index: 10001;
+    transition: all 0.3s ease;
+}
+#toggle-bg-btn:hover {
+    background-color: #dcdde1;
+    transform: scale(1.03);
+}
+
+
+    </style>
+</head>
+<body>
+
+
+<button id="toggle-bg-btn">🌈 Show Background Image</button>
+
+
+
+    <div class="controls">
+        <button id="toggle-controls-btn">◀️</button>
+
+        <div id="controls-content">
+            <h4>📄 Paper Size:</h4>
+            <select id="paper-size-select">
+                <option value="a4">A4 (210 x 297 mm)</option>
+                <option value="us-letter">US Letter (8.5 x 11 in)</option>
+                <option value="a5">A5 (148 x 210 mm)</option>
+                <option value="a6">A6 (105 x 148 mm)</option>
+            </select>
+
+            <h4>📐 Layout:</h4>
+            <select id="layout-select">
+                <option value="normal">Normal (Auto-Fit Max)</option>
+                <option value="custom">Custom</option>
+            </select>
+
+            <div id="custom-layout-options" style="display: none;">
+                <input type="number" id="custom-cols" placeholder="Columns (e.g., 5)" min="1" value="6">
+                <input type="number" id="custom-rows" placeholder="Rows (e.g., 8)" min="1" value="8">
+            </div>
+
+            <button onclick="resetGrid()">Apply Layout/Paper</button>
+
+            <h4>📤 Upload Photos:</h4>
+            <input type="file" id="multi-file-input" class="hidden-input" accept="image/*" multiple>
+            <input type="file" id="single-file-input" class="hidden-input" accept="image/*">
+            <input type="file" id="replace-file-input" class="hidden-input" accept="image/*">
+
+            <button id="multi-upload-btn">➕ Choose Photos (Auto-Fill Pairs)</button>
+            <button id="single-upload-btn">➕ Add Single Photo (Creates Duplicate)</button>
+
+            <p style="font-size: 0.8em; margin-top: 10px;">Click any photo to <strong>Edit, Delete, or Replace</strong> it.</p>
+            <button id="print-btn" onclick="window.print()">🖨️ Print All Photo Sheets</button>
+        </div>
+    </div>
+
+    <div id="page-wrapper"></div>
+
+    <div id="edit-modal" class="modal" aria-hidden="true">
+        <div class="modal-content" role="dialog" aria-modal="true">
+            <h3>Photo Editor — Zoom & Move (35×45 mm)</h3>
+
+            <div class="editor-wrapper">
+                <div class="editor-canvas-frame" id="editor-frame" title="Drag to move; use zoom to scale">
+                    <!-- Editor image placed here -->
+                    <img id="editor-img" class="editor-image" src="" alt="edit preview" draggable="false">
+                </div>
+
+                <div class="editor-controls">
+                    <label>Zoom: <input type="range" id="zoom-range" min="50" max="300" value="100"></label>
+                    <div class="small-note">Drag the image to position it inside the fixed 35×45 mm frame. Zoom to scale.</div>
+
+                    <hr/>
+
+                    <label>Brightness: <input type="range" id="brightness-slider" min="50" max="200" value="100"></label>
+                    <label>Contrast: <input type="range" id="contrast-slider" min="50" max="200" value="100"></label>
+
+                    <div class="modal-buttons">
+                        <button id="delete-btn">🗑️ Delete Photo</button>
+                        <button id="replace-btn">🔁 Replace Photo</button>
+                        <button id="save-edit-btn">💾 Save</button>
+                        <button id="close-modal-btn">Close</button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:10px;color:#777;font-size:13px">
+                After saving, the edited image replaces the original and the applied brightness/contrast are preserved.
+            </div>
+        </div>
+    </div>
+
+    <script>
+	
+	
+const toggleBtn = document.getElementById('toggle-bg-btn');
+toggleBtn.addEventListener('click', () => {
+    document.body.classList.toggle('bg-image');
+
+    if (document.body.classList.contains('bg-image')) {
+        toggleBtn.textContent = '💧 Show Gradient Background';
+    } else {
+        toggleBtn.textContent = '🌈 Show Background Image';
+    }
+});
+
+
+	
+	
+    /* ---------------- Constants & Layout logic (mostly unchanged) ---------------- */
+    const PHOTO_WIDTH_MM = 35;
+    const PHOTO_HEIGHT_MM = 45;
+    const GAP_MM = 0.5; // White spacer thickness
+
+    const PAPER_SIZES = {
+        'a4': { w: 210, h: 297, unit: 'mm' },
+        'us-letter': { w: 215.9, h: 279.4, unit: 'mm' },
+        'a5': { w: 148, h: 210, unit: 'mm' },
+        'a6': { w: 105, h: 148, unit: 'mm' }
+    };
+
+    let currentLayout = {
+        mode: 'normal',
+        cols: 0,
+        rows: 0,
+        photosPerPage: 0,
+        size: 'a4'
+    };
+
+    let currentPageIndex = 0;
+    let nextBoxIndex = 1;
+    let selectedPhotoElement = null;
+
+    function calculateLayout() {
+        const size = PAPER_SIZES[currentLayout.size];
+        const pagePadding = 10 * 2; // we used 10mm padding in CSS
+        let cols, rows;
+
+        if (currentLayout.mode === 'custom') {
+            cols = parseInt(document.getElementById('custom-cols').value) || 1;
+            rows = parseInt(document.getElementById('custom-rows').value) || 1;
+        } else {
+            const printableWidth = size.w - pagePadding;
+            const printableHeight = size.h - pagePadding;
+            cols = Math.floor((printableWidth + GAP_MM) / (PHOTO_WIDTH_MM + GAP_MM));
+            rows = Math.floor((printableHeight + GAP_MM) / (PHOTO_HEIGHT_MM + GAP_MM));
+        }
+
+        cols = Math.max(1, cols);
+        rows = Math.max(1, rows);
+
+        currentLayout.cols = cols;
+        currentLayout.rows = rows;
+        currentLayout.photosPerPage = cols * rows;
+    }
+
+    window.resetGrid = function() {
+        currentLayout.size = document.getElementById('paper-size-select').value;
+        currentLayout.mode = document.getElementById('layout-select').value;
+        calculateLayout();
+
+        const wrapper = document.getElementById('page-wrapper');
+        wrapper.innerHTML = '';
+        currentPageIndex = 0;
+        nextBoxIndex = 1;
+        createPage(0);
+    };
+
+    function createPage(pageIndex) {
+        const wrapper = document.getElementById('page-wrapper');
+
+        const pageDiv = document.createElement('div');
+        pageDiv.classList.add(`${currentLayout.size}-page`);
+        pageDiv.id = `page-${pageIndex}`;
+
+        const gridContainer = document.createElement('div');
+        gridContainer.classList.add('grid-container');
+        gridContainer.id = `grid-${pageIndex}`;
+
+        gridContainer.style.gridTemplateColumns = `repeat(${currentLayout.cols}, ${PHOTO_WIDTH_MM}mm)`;
+        gridContainer.style.gridTemplateRows = `repeat(${currentLayout.rows}, ${PHOTO_HEIGHT_MM}mm)`;
+
+        for (let i = 1; i <= currentLayout.photosPerPage; i++) {
+            const box = document.createElement('div');
+            box.classList.add('box');
+            box.id = `box-${pageIndex}-${i}`;
+            box.innerHTML = `<img class="box-image" id="box-img-${pageIndex}-${i}" src="" alt="Photo" crossorigin="anonymous"><span>${i}</span>`;
+            box.addEventListener('click', openEditModal);
+            gridContainer.appendChild(box);
+        }
+
+        pageDiv.appendChild(gridContainer);
+        wrapper.appendChild(pageDiv);
+    }
+
+    function checkAndCreateNewPage() {
+        if (nextBoxIndex > currentLayout.photosPerPage) {
+            currentPageIndex++;
+            nextBoxIndex = 1;
+            createPage(currentPageIndex);
+        }
+    }
+
+    function updateBox(pageIndex, boxIndex, imageURL, filters = 'brightness(100%) contrast(100%)') {
+        const imgElement = document.getElementById(`box-img-${pageIndex}-${boxIndex}`);
+        const boxElement = document.getElementById(`box-${pageIndex}-${boxIndex}`);
+
+        if (imgElement && boxElement) {
+            imgElement.src = imageURL;
+            imgElement.style.display = 'block';
+            imgElement.style.filter = filters;
+            imgElement.dataset.filters = filters;
+
+            const span = boxElement.querySelector('span');
+            if (span) span.style.display = 'none';
+
+            boxElement.dataset.hasPhoto = 'true';
+            boxElement.dataset.imageURL = imageURL;
+        }
+    }
+
+    function clearBox(boxElement) {
+        if (!boxElement) return;
+
+        const imgElement = boxElement.querySelector('.box-image');
+        const span = boxElement.querySelector('span');
+
+        imgElement.src = '';
+        imgElement.style.display = 'none';
+        imgElement.style.filter = '';
+        imgElement.dataset.filters = '';
+
+        if (span) span.style.display = 'block';
+
+        boxElement.dataset.hasPhoto = 'false';
+        boxElement.dataset.imageURL = '';
+    }
+
+    /* ---------------- Upload Handlers (unchanged behavior) ---------------- */
+    function handleSinglePhotoUpload(file) {
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imageURL = e.target.result;
+
+            // BOX A (Target)
+            checkAndCreateNewPage();
+            updateBox(currentPageIndex, nextBoxIndex, imageURL);
+            nextBoxIndex++;
+
+            // BOX B (Duplicate)
+            checkAndCreateNewPage();
+            updateBox(currentPageIndex, nextBoxIndex, imageURL);
+            nextBoxIndex++;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function handleMultiPhotoUpload(files) {
+        if (files.length === 0) return;
+        Array.from(files).forEach((file) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageURL = e.target.result;
+                // BOX A
+                checkAndCreateNewPage();
+                updateBox(currentPageIndex, nextBoxIndex, imageURL);
+                nextBoxIndex++;
+                // BOX B
+                checkAndCreateNewPage();
+                updateBox(currentPageIndex, nextBoxIndex, imageURL);
+                nextBoxIndex++;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    /* ---------------- Editor (ZOOM + PAN + filters) ---------------- */
+    const editorModal = document.getElementById('edit-modal');
+    const editorFrame = document.getElementById('editor-frame');
+    const editorImg = document.getElementById('editor-img');
+    const zoomRange = document.getElementById('zoom-range');
+    const brightnessSlider = document.getElementById('brightness-slider');
+    const contrastSlider = document.getElementById('contrast-slider');
+    const saveEditBtn = document.getElementById('save-edit-btn');
+    const deleteBtn = document.getElementById('delete-btn');
+    const replaceBtn = document.getElementById('replace-btn');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const replaceFileInput = document.getElementById('replace-file-input');
+
+    // Editor state for the selected image
+    let editingState = {
+        pageIndex: null,
+        boxIndex: null,
+        imgNaturalWidth: 0,
+        imgNaturalHeight: 0,
+        posX: 0, // translate
+        posY: 0,
+        scale: 1,
+        brightness: 1,
+        contrast: 1,
+        isDragging: false,
+        dragStart: { x: 0, y: 0 },
+        imgOffsetOnDragStart: { x: 0, y: 0 }
+    };
+
+    // open modal: prepare editor from clicked box
+    function openEditModal(event) {
+        const boxElement = event.currentTarget;
+        if (boxElement.dataset.hasPhoto !== 'true') return;
+
+        // deselect previous
+        if (selectedPhotoElement) selectedPhotoElement.classList.remove('selected');
+        selectedPhotoElement = boxElement;
+        boxElement.classList.add('selected');
+
+        // parse id to get page/box index
+        const parts = boxElement.id.split('-'); // box-pageIndex-index
+        const pageIndex = parseInt(parts[1]);
+        const boxIndex = parseInt(parts[2]);
+
+        const imgElement = boxElement.querySelector('.box-image');
+        const currentFilters = imgElement.dataset.filters || 'brightness(100%) contrast(100%)';
+
+        const brightnessMatch = currentFilters.match(/brightness\((\d+)%\)/);
+        const contrastMatch = currentFilters.match(/contrast\((\d+)%\)/);
+
+        const brightnessValue = brightnessMatch ? Number(brightnessMatch[1]) : 100;
+        const contrastValue = contrastMatch ? Number(contrastMatch[1]) : 100;
+
+        // set editing state
+        editingState.pageIndex = pageIndex;
+        editingState.boxIndex = boxIndex;
+        editingState.posX = 0;
+        editingState.posY = 0;
+        editingState.scale = 1;
+        editingState.brightness = brightnessValue / 100;
+        editingState.contrast = contrastValue / 100;
+
+        // prepare editor image
+        editorImg.src = imgElement.src;
+        editorImg.style.transform = '';
+        editorImg.style.left = '0px';
+        editorImg.style.top = '0px';
+        editorImg.style.visibility = 'hidden'; // hide until loaded
+
+        // set sliders
+        zoomRange.value = 100;
+        brightnessSlider.value = brightnessValue;
+        contrastSlider.value = contrastValue;
+
+        // once image loads, compute natural sizes and center it
+        editorImg.onload = function() {
+            editingState.imgNaturalWidth = editorImg.naturalWidth;
+            editingState.imgNaturalHeight = editorImg.naturalHeight;
+
+            // center image inside frame and make it cover the frame (like object-fit: cover)
+            fitImageToFrame();
+
+            applyEditorTransform();
+            editorImg.style.visibility = 'visible';
+        };
+
+        // show modal
+        editorModal.style.display = 'block';
+        editorModal.setAttribute('aria-hidden','false');
+    }
+
+    function fitImageToFrame() {
+        // aim: ensure image covers the frame completely at scale = 1
+        const frameRect = editorFrame.getBoundingClientRect();
+        const fw = frameRect.width, fh = frameRect.height;
+        const iw = editingState.imgNaturalWidth, ih = editingState.imgNaturalHeight;
+
+        // compute scale so that image covers the frame (max of width and height)
+        const scaleX = fw / iw;
+        const scaleY = fh / ih;
+        const baseScale = Math.max(scaleX, scaleY);
+        editingState.scale = baseScale;
+        // center offsets (in px relative to frame)
+        editingState.posX = (fw - iw * baseScale) / 2;
+        editingState.posY = (fh - ih * baseScale) / 2;
+
+        // reflect zoomRange (100% equals baseScale)
+        const displayPercent = Math.round(editingState.scale / baseScale * 100);
+        zoomRange.value = displayPercent;
+    }
+
+    function applyEditorTransform() {
+        // apply transform and CSS filters to editorImg
+        const frameRect = editorFrame.getBoundingClientRect();
+        const fw = frameRect.width, fh = frameRect.height;
+        const s = editingState.scale;
+        const left = editingState.posX;
+        const top = editingState.posY;
+
+        // set size of image element to natural size * scale
+        editorImg.style.width = (editingState.imgNaturalWidth * s) + 'px';
+        editorImg.style.height = (editingState.imgNaturalHeight * s) + 'px';
+        editorImg.style.left = left + 'px';
+        editorImg.style.top = top + 'px';
+        editorImg.style.transform = `translate3d(0,0,0)`; // use left/top for positioning (easier)
+        editorImg.style.filter = `brightness(${editingState.brightness * 100}%) contrast(${editingState.contrast * 100}%)`;
+    }
+
+    // zoom slider handling:
+    zoomRange.addEventListener('input', () => {
+        const frameRect = editorFrame.getBoundingClientRect();
+        const fw = frameRect.width, fh = frameRect.height;
+        const baseFit = computeBaseScale(); // scale that makes cover
+        const percent = Number(zoomRange.value) / 100;
+        // new scale relative to baseFit
+        const newScale = baseFit * percent;
+
+        // To keep the image focused at center of frame when zooming,
+        // compute center point and adjust posX/posY so the center remains
+        const centerX = fw / 2;
+        const centerY = fh / 2;
+
+        // previous center in image coords
+        const prevScale = editingState.scale;
+        const prevImgLeft = editingState.posX;
+        const prevImgTop = editingState.posY;
+
+        // compute img coords of frame center relative to image
+        const imgCenterX = (centerX - prevImgLeft) / prevScale;
+        const imgCenterY = (centerY - prevImgTop) / prevScale;
+
+        // new top-left so that imgCenterX,imgCenterY maps to frame center at new scale
+        const newLeft = centerX - imgCenterX * newScale;
+        const newTop = centerY - imgCenterY * newScale;
+
+        editingState.scale = newScale;
+        editingState.posX = newLeft;
+        editingState.posY = newTop;
+
+        applyEditorTransform();
+    });
+
+    function computeBaseScale() {
+        const frameRect = editorFrame.getBoundingClientRect();
+        const fw = frameRect.width, fh = frameRect.height;
+        const iw = editingState.imgNaturalWidth, ih = editingState.imgNaturalHeight;
+        const scaleX = fw / iw;
+        const scaleY = fh / ih;
+        return Math.max(scaleX, scaleY);
+    }
+
+    // drag to pan
+    editorImg.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        editingState.isDragging = true;
+        editorImg.style.cursor = 'grabbing';
+        editingState.dragStart = { x: e.clientX, y: e.clientY };
+        editingState.imgOffsetOnDragStart = { x: editingState.posX, y: editingState.posY };
+    });
+    window.addEventListener('mousemove', (e) => {
+        if (!editingState.isDragging) return;
+        const dx = e.clientX - editingState.dragStart.x;
+        const dy = e.clientY - editingState.dragStart.y;
+        editingState.posX = editingState.imgOffsetOnDragStart.x + dx;
+        editingState.posY = editingState.imgOffsetOnDragStart.y + dy;
+        applyEditorTransform();
+    });
+    window.addEventListener('mouseup', () => {
+        editingState.isDragging = false;
+        editorImg.style.cursor = 'grab';
+    });
+
+    // touch support
+    editorImg.addEventListener('touchstart', (ev) => {
+        if (ev.touches.length === 1) {
+            const t = ev.touches[0];
+            editingState.isDragging = true;
+            editingState.dragStart = { x: t.clientX, y: t.clientY };
+            editingState.imgOffsetOnDragStart = { x: editingState.posX, y: editingState.posY };
+        }
+    }, { passive: true });
+    window.addEventListener('touchmove', (ev) => {
+        if (!editingState.isDragging || ev.touches.length !== 1) return;
+        const t = ev.touches[0];
+        const dx = t.clientX - editingState.dragStart.x;
+        const dy = t.clientY - editingState.dragStart.y;
+        editingState.posX = editingState.imgOffsetOnDragStart.x + dx;
+        editingState.posY = editingState.imgOffsetOnDragStart.y + dy;
+        applyEditorTransform();
+    }, { passive: true });
+    window.addEventListener('touchend', () => {
+        editingState.isDragging = false;
+    });
+
+    // sliders for brightness/contrast
+    function updateBrightnessContrastFromSliders() {
+        editingState.brightness = Number(brightnessSlider.value) / 100;
+        editingState.contrast = Number(contrastSlider.value) / 100;
+        applyEditorTransform();
+    }
+    brightnessSlider.addEventListener('input', updateBrightnessContrastFromSliders);
+    contrastSlider.addEventListener('input', updateBrightnessContrastFromSliders);
+
+    // Save edited image: crop to the fixed 35x45 mm frame and replace the box image
+    saveEditBtn.addEventListener('click', () => {
+        if (editingState.pageIndex == null) return;
+        // Create a canvas matching target photo pixel size (choose reasonable DPI, eg. 300dpi)
+        // mm -> px: 1 inch = 25.4 mm. At 300dpi => 300 px per inch => pxPerMm = 300/25.4 ≈ 11.811
+        const DPI = 300;
+        const pxPerMm = DPI / 25.4;
+        const targetW_px = Math.round(PHOTO_WIDTH_MM * pxPerMm);
+        const targetH_px = Math.round(PHOTO_HEIGHT_MM * pxPerMm);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = targetW_px;
+        canvas.height = targetH_px;
+        const ctx = canvas.getContext('2d');
+
+        // compute how editorFrame (screen px) maps to image natural coordinates
+        const frameRect = editorFrame.getBoundingClientRect();
+        const fw = frameRect.width, fh = frameRect.height;
+
+        // image drawn at: left = editingState.posX, top = editingState.posY, size = naturalWidth * scale x naturalHeight * scale
+        // For each canvas pixel, find corresponding position on the original image:
+        // mapping from canvas (0..targetW_px) -> frame coords (0..fw), then frame->image natural coords:
+        // frameX -> (frameX - posX) / scale = imageX on natural image
+
+        // we'll draw by sampling pixels: draw original image into an offscreen canvas at natural size, then draw onto final canvas with transform
+        const off = document.createElement('canvas');
+        off.width = editingState.imgNaturalWidth;
+        off.height = editingState.imgNaturalHeight;
+        const offctx = off.getContext('2d');
+
+        // apply brightness/contrast to offscreen drawing: use ctx.filter before drawImage (supported in modern browsers)
+        offctx.filter = `brightness(${editingState.brightness * 100}%) contrast(${editingState.contrast * 100}%)`;
+        // draw natural-size image to offscreen (should be original pixels)
+        const tempImg = new Image();
+        tempImg.crossOrigin = "anonymous";
+        tempImg.onload = function() {
+            offctx.drawImage(tempImg, 0, 0, off.width, off.height);
+
+            // Create pattern: we need to map the frame to the natural image coordinates
+            // For final canvas, we'll iterate final canvas corners mapping to frame:
+            // For a pixel at (cx, cy) in canvas, the corresponding frame coordinate:
+            // frameX = cx * (fw / targetW_px)
+            // imageX = (frameX - posX) / scale
+
+            // We'll use drawImage with appropriate source rect: compute source rect that corresponds to frame area scaled to target px
+            // Instead compute source rectangle in natural image coords representing the portion visible in the frame:
+            // frame left corresponds to imageX0 = (0 - posX) / scale
+            // frame top corresponds to imageY0 = (0 - posY) / scale
+            // frame width in image coords: fw / scale
+            // frame height in image coords: fh / scale
+
+            const scale = editingState.scale;
+            const imageX0 = (0 - editingState.posX) / scale;
+            const imageY0 = (0 - editingState.posY) / scale;
+            const imageW = fw / scale;
+            const imageH = fh / scale;
+
+            // Now draw that source rectangle (imageX0, imageY0, imageW, imageH) into canvas sized targetW_px x targetH_px
+            // clamp the source rectangle to image boundaries
+            const sx = Math.max(0, imageX0);
+            const sy = Math.max(0, imageY0);
+            const sWidth = Math.max(1, Math.min(off.width - sx, imageW - (sx - imageX0)));
+            const sHeight = Math.max(1, Math.min(off.height - sy, imageH - (sy - imageY0)));
+
+            // Fill background white (in case of transparent areas)
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+
+            // draw sampled region to final canvas
+            try {
+                ctx.drawImage(off, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
+            } catch(err) {
+                console.error('drawImage failed', err);
+                // fallback: draw full image scaled center cropped
+                ctx.drawImage(off, 0,0,off.width,off.height,0,0,canvas.width,canvas.height);
+            }
+
+            // final data URL
+            const dataURL = canvas.toDataURL('image/jpeg', 0.92);
+
+            // Update the selected box with the new image and preserve filters (we already applied filters in canvas so reset filters to 100%)
+            const pageIndex = editingState.pageIndex;
+            const boxIndex = editingState.boxIndex;
+            updateBox(pageIndex, boxIndex, dataURL, 'brightness(100%) contrast(100%)');
+
+            // close modal and cleanup
+            closeModal();
+        };
+        tempImg.onerror = function(e) {
+            console.error('temp image load failed', e);
+            alert('Failed to process image.');
+        };
+        tempImg.src = editorImg.src;
+    });
+
+    // Delete photo from selected box
+    deleteBtn.addEventListener('click', () => {
+        if (!selectedPhotoElement) return;
+        clearBox(selectedPhotoElement);
+        closeModal();
+    });
+
+    // Replace: trigger hidden input; handle replace upon selection
+    replaceBtn.addEventListener('click', () => {
+        replaceFileInput.click();
+    });
+
+    replaceFileInput.addEventListener('change', (ev) => {
+        const f = ev.target.files[0];
+        if (!f || !selectedPhotoElement) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // keep existing filters on replacement
+            const existingFilters = selectedPhotoElement.querySelector('.box-image').dataset.filters || 'brightness(100%) contrast(100%)';
+            // get page/box index
+            const parts = selectedPhotoElement.id.split('-');
+            const pageIndex = Number(parts[1]);
+            const boxIndex = Number(parts[2]);
+            updateBox(pageIndex, boxIndex, e.target.result, existingFilters);
+            closeModal();
+        };
+        reader.readAsDataURL(f);
+    });
+
+    // close modal
+    closeModalBtn.addEventListener('click', closeModal);
+    function closeModal() {
+        editorModal.style.display = 'none';
+        editorModal.setAttribute('aria-hidden','true');
+        if (selectedPhotoElement) selectedPhotoElement.classList.remove('selected');
+        selectedPhotoElement = null;
+        // reset editing state
+        editingState.pageIndex = null;
+        editingState.boxIndex = null;
+    }
+
+    /* ---------------- MANAGEMENT (applyFilters for quick inline editing) ---------------- */
+    // Keep this so small quick edits without opening modal are also possible in future.
+    function applyFiltersInline() {
+        if (!selectedPhotoElement) return;
+        const brightness = document.getElementById('brightness-slider').value;
+        const contrast = document.getElementById('contrast-slider').value;
+        const newFilters = `brightness(${brightness}%) contrast(${contrast}%)`;
+        const imgElement = selectedPhotoElement.querySelector('.box-image');
+        if (imgElement) {
+            imgElement.style.filter = newFilters;
+            imgElement.dataset.filters = newFilters;
+        }
+    }
+
+    // Keep these available if needed (not currently used). We rely on modal sliders for editing.
+
+    /* ---------------- Replace modal opening quick binds (sync modal sliders when open) ---------------- */
+    // When modal is about to close, ensure any direct slider changes reflect on editor image:
+    brightnessSlider.addEventListener('input', () => {
+        editingState.brightness = Number(brightnessSlider.value) / 100;
+        applyEditorTransform();
+    });
+    contrastSlider.addEventListener('input', () => {
+        editingState.contrast = Number(contrastSlider.value) / 100;
+        applyEditorTransform();
+    });
+
+    /* ---------------- Helpers & Initialization ---------------- */
+    function toggleCustomLayoutInputs() {
+        const layoutSelect = document.getElementById('layout-select').value;
+        const customOptions = document.getElementById('custom-layout-options');
+        if (layoutSelect === 'custom') customOptions.style.display = 'block';
+        else customOptions.style.display = 'none';
+    }
+
+    function toggleControls() {
+        const content = document.getElementById('controls-content');
+        const button = document.getElementById('toggle-controls-btn');
+        content.classList.toggle('hidden');
+        if (content.classList.contains('hidden')) button.textContent = '▶️';
+        else button.textContent = '◀️';
+    }
+
+    // Replace updateBox earlier usage to keep filters persistent. (already implemented)
+
+    /* ---------------- Initialization and Event Listeners ---------------- */
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initial layout
+        calculateLayout();
+        createPage(0);
+
+        // Elements
+        const multiFileInput = document.getElementById('multi-file-input');
+        const singleFileInput = document.getElementById('single-file-input');
+        const multiUploadBtn = document.getElementById('multi-upload-btn');
+        const singleUploadBtn = document.getElementById('single-upload-btn');
+        const layoutSelect = document.getElementById('layout-select');
+        const toggleBtn = document.getElementById('toggle-controls-btn');
+
+        // Event bindings
+        toggleBtn.addEventListener('click', toggleControls);
+        layoutSelect.addEventListener('change', toggleCustomLayoutInputs);
+
+        multiUploadBtn.addEventListener('click', () => multiFileInput.click());
+        singleUploadBtn.addEventListener('click', () => singleFileInput.click());
+
+        multiFileInput.addEventListener('change', (event) => {
+            handleMultiPhotoUpload(event.target.files);
+            event.target.value = null;
+        });
+        singleFileInput.addEventListener('change', (event) => {
+            handleSinglePhotoUpload(event.target.files[0]);
+            event.target.value = null;
+        });
+
+        // Keyboard escape to close modal
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (editorModal.style.display === 'block') closeModal();
+            }
+        });
+    });
+    </script>
+</body>
+</html>
