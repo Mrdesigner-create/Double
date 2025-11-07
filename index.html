@@ -27,7 +27,7 @@
     }
     body.bg-gradient { background: linear-gradient(to bottom right, skyblue, #ff4b4b) !important; }
 
-    /* --- MODIFICATION HERE: Changed align-items:center to align-items:flex-start to align paper to the left --- */
+    /* --- MODIFICATION 1 (Previous Request): Align paper to the left --- */
     #page-wrapper { display:flex; flex-direction:column; align-items:flex-start; width:100%; }
 
     .a4-page { width:210mm; min-height:297mm; }
@@ -39,7 +39,7 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       background:#fff;
       margin-bottom:20px;
-      padding:10mm;
+      /* padding:10mm;  <-- MODIFICATION 2: Removed default padding. Margins will now be set by JS as custom padding. */
       box-sizing:border-box;
     }
     .a4-page.hidden, .a5-page.hidden, .a6-page.hidden, .us-letter-page.hidden { display:none !important; }
@@ -111,7 +111,8 @@
     @media print {
       .controls-panel-container, .modal, #toggle-controls-btn, #toggle-bg-btn, #togglePaperBtn { display:none; }
       body { padding:0; background-color:white; }
-      .a4-page, .a5-page, .a6-page, .us-letter-page { width:auto !important; min-height:auto !important; margin:0; padding:0; box-shadow:none; page-break-after:always; }
+      /* Print pages should have no padding/margin and page-break rules only applied to the paper itself */
+      .a4-page, .a5-page, .a6-page, .us-letter-page { width:auto !important; min-height:auto !important; margin:0; padding:0 !important; box-shadow:none; page-break-after:always; }
       .grid-container { gap:0.5mm !important; }
       /* default: no border for boxes unless we inject rules before printing */
       .box { border:0pt solid black !important; box-shadow:none !important; background:white !important; cursor:default; }
@@ -182,7 +183,7 @@
         border: 2px solid #1abc9c !important;
         font-weight: bold !important;
     }
-
+    
     /* 5. Apply Layout/Paper/Photo Button */
     .controls button[onclick="resetGrid()"] {
         background-color: orange !important;
@@ -194,7 +195,7 @@
     }
     
     /* 6. Border Options Container Text */
-    .controls > div[style*="background-color: #f0f8ff"] {
+    .controls > div[style*="background-color: #f0f8ff"]:not(:has(> h4:contains("Margins"))) {
         color: #34495e !important; /* Dark Blue for visibility on light blue background */
         border: 2px solid orange !important;
         text-align: center;
@@ -273,7 +274,17 @@
           <option value="a5">A5 (148 x 210 mm)</option>
           <option value="a6">A6 (105 x 148 mm)</option>
         </select>
-
+        
+        <div style="background-color: #f0f8ff; padding: 10px; border-radius: 5px;">
+            <h4>📐 Paper Margins (mm):</h4>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
+                <input type="number" id="margin-top" min="0" value="0" placeholder="Up (mm)">
+                <input type="number" id="margin-bottom" min="0" value="0" placeholder="Bottom (mm)">
+                <input type="number" id="margin-left" min="0" value="0" placeholder="Left (mm)">
+                <input type="number" id="margin-right" min="0" value="0" placeholder="Right (mm)">
+            </div>
+            <div class="small-note" style="color:#000;">These values define the printable area.</div>
+        </div>
         <h4>📸 Photo Size:</h4>
         <select id="photo-size-select">
           <option value="4x6">4x6 in (102x152 mm)</option>
@@ -387,7 +398,8 @@ const PHOTO_SIZES = {
 let currentPhotoWidth = PHOTO_SIZES['35x45'].w;
 let currentPhotoHeight = PHOTO_SIZES['35x45'].h;
 
-let currentLayout = { mode:'normal', cols:0, rows:0, photosPerPage:0, size:'a4' };
+// MODIFIED: Initial margin values in JavaScript set to 0
+let currentLayout = { mode:'normal', cols:0, rows:0, photosPerPage:0, size:'a4', margins: { top: 0, bottom: 0, left: 0, right: 0 } }; 
 let currentPageIndex = 0, nextBoxIndex = 1;
 let selectedPhotoElements = new Set(); // support multi-select
 let userBorderStyle = '0pt solid black'; // saved preference for print/new uploads
@@ -395,15 +407,27 @@ let userBorderStyle = '0pt solid black'; // saved preference for print/new uploa
 /* layout & grid */
 function calculateLayout(){
   const size = PAPER_SIZES[currentLayout.size];
-  const pagePadding = 10 * 2;
+  
+  // MODIFICATION 4: Read custom margins
+  // Use || 0 to ensure margin values are not null/undefined/NaN, resulting in 0 if the input field is empty (which it is not by default now)
+  const marginTop = parseFloat(document.getElementById('margin-top').value) || 0;
+  const marginBottom = parseFloat(document.getElementById('margin-bottom').value) || 0;
+  const marginLeft = parseFloat(document.getElementById('margin-left').value) || 0;
+  const marginRight = parseFloat(document.getElementById('margin-right').value) || 0;
+
+  // Store margins in layout for use in createPage
+  currentLayout.margins = { top: marginTop, bottom: marginBottom, left: marginLeft, right: marginRight };
+
+  // Calculate printable area by subtracting margins from total paper size
+  const printableWidth = size.w - marginLeft - marginRight;
+  const printableHeight = size.h - marginTop - marginBottom;
+  
   let cols, rows;
   if (currentLayout.mode === 'custom'){
     cols = parseInt(document.getElementById('custom-cols').value) || 1;
     rows = parseInt(document.getElementById('custom-rows').value) || 1;
   } else {
-    const printableWidth = size.w - pagePadding;
-    const printableHeight = size.h - pagePadding;
-    // UPDATED: use dynamic photo sizes
+    // UPDATED: Use the calculated printable dimensions to determine max fit
     cols = Math.floor((printableWidth + GAP_MM) / (currentPhotoWidth + GAP_MM));
     rows = Math.floor((printableHeight + GAP_MM) / (currentPhotoHeight + GAP_MM));
   }
@@ -425,7 +449,7 @@ function updatePhotoSizeVariable(){
 window.resetGrid = function(){
   currentLayout.size = document.getElementById('paper-size-select').value;
   currentLayout.mode = document.getElementById('layout-select').value;
-  calculateLayout();
+  calculateLayout(); // Recalculate layout and margins
   const wrapper = document.getElementById('page-wrapper');
   wrapper.innerHTML = '';
   currentPageIndex = 0; nextBoxIndex = 1;
@@ -441,6 +465,13 @@ function createPage(pageIndex){
   pageDiv.id = `page-${pageIndex}`;
   if (document.getElementById('togglePaperBtn').textContent === 'Show Screen Paper') pageDiv.classList.add('hidden');
 
+  // MODIFICATION 5: Apply custom padding to the pageDiv based on user margin input
+  const m = currentLayout.margins;
+  if (m) {
+    // CSS padding order: Top, Right, Bottom, Left
+    pageDiv.style.padding = `${m.top}mm ${m.right}mm ${m.bottom}mm ${m.left}mm`;
+  }
+  
   const gridContainer = document.createElement('div');
   gridContainer.classList.add('grid-container');
   gridContainer.id = `grid-${pageIndex}`;
@@ -482,7 +513,7 @@ function updateBox(pageIndex, boxIndex, imageURL, filters='brightness(100%) cont
   img.src = imageURL; img.style.display = 'block'; img.style.filter = filters; img.dataset.filters = filters;
   const span = box.querySelector('span'); if (span) span.style.display = 'none';
   box.dataset.hasPhoto = 'true'; box.dataset.imageURL = imageURL;
-  box.dataset.userBorderStyle = userBorderStyle || '0pt solid black'; // store current preference for print (but only if user later applies it)
+  box.dataset.userBorderStyle = userBorderStyle || '0pt solid black'; // store current preference for print/new uploads
   box.style.border = '0pt solid black'; // screen shows border only when selected
 }
 
@@ -869,6 +900,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('border-width-input').addEventListener('input', updatePrintBorderVariable);
 
   // layout & pages
+  const marginInputs = document.querySelectorAll('#margin-top, #margin-bottom, #margin-left, #margin-right');
+  marginInputs.forEach(input => input.addEventListener('input', resetGrid));
+  
   // NEW: Bind the photo size selector to update variables and recalculate the grid
   document.getElementById('photo-size-select').addEventListener('change', ()=>{
     updatePhotoSizeVariable();
