@@ -12,9 +12,9 @@
         /* ------------------------------------------------------------------- */
         /* 🟢 CHANGE COLOR HERE: MAIN TOGGLE BUTTON (CONTROL PANEL) */
         /* ------------------------------------------------------------------- */
-        --toggle-controls-bg: red;    /* Example: Change 'red' to '#1A73E8' */
-        --toggle-controls-border: #388E3C;/* Example: Change '#388E3C' to '#004D9F' */
-        --toggle-controls-icon-color: white; /* Example: Change 'white' to 'yellow' or '#FFFF00' */
+        --toggle-controls-bg: red;    
+        --toggle-controls-border: #388E3C;
+        --toggle-controls-icon-color: white; 
     }
 
     body {
@@ -27,7 +27,7 @@
     }
     body.bg-gradient { background: linear-gradient(to bottom right, skyblue, #ff4b4b) !important; }
 
-    /* --- MODIFICATION 1 (Previous Request): Align paper to the left --- */
+    /* 💡 FIX 1: Align paper to the left for proper margin application during printing */
     #page-wrapper { display:flex; flex-direction:column; align-items:flex-start; width:100%; }
 
     .a4-page { width:210mm; min-height:297mm; }
@@ -39,7 +39,8 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       background:#fff;
       margin-bottom:20px;
-      /* padding:10mm;  <-- MODIFICATION 2: Removed default padding. Margins will now be set by JS as custom padding. */
+      /* Original padding removed. Margins are set by JS as custom padding. */
+      padding:10mm; 
       box-sizing:border-box;
     }
     .a4-page.hidden, .a5-page.hidden, .a6-page.hidden, .us-letter-page.hidden { display:none !important; }
@@ -51,13 +52,13 @@
     .controls-panel-container { position:fixed; top:20px; right:20px; transition:right 1.10s; }
     .controls-panel-container.hidden { right:-382px; }
 
-    /* --- UPDATED: Use variables for color control (uses the '🟢 CHANGE COLOR HERE' section above) --- */
+    /* --- UPDATED: Use variables for color control --- */
     #toggle-controls-btn { 
       position:absolute; top:0; left:-54px; height:68px; width:59px;
-      border:1px solid var(--toggle-controls-border); /* Uses variable */
+      border:1px solid var(--toggle-controls-border); 
       border-right:10px; 
-      background:var(--toggle-controls-bg); /* Uses variable */
-      color: var(--toggle-controls-icon-color); /* Uses variable */
+      background:var(--toggle-controls-bg); 
+      color: var(--toggle-controls-icon-color); 
       display:flex; align-items:center; justify-content:center;
       border-radius:22px 0 0 20px; cursor:pointer; box-shadow:-10px 0 8px rgba(0,0,0,0.1);
       font-size: 24px; 
@@ -65,26 +66,20 @@
 
     #toggle-bg-btn { position:fixed; top:20px; left:20px; background:yellow; border:1px solid red; box-shadow: 0 8px 8px rgba(0,0,0,0.3); padding:8px 8px; cursor:pointer; z-index:10001; }
 
-    /* FIX 1: Provide a base white background for all controls (low specificity) 
-              to prevent parent red background from showing through or unexpected color defaults. */
     .controls button, .controls select, .controls input[type="number"], .controls input[type="range"], .controls input[type="color"], .controls input[type="checkbox"] {
       padding:10px 12px; margin:6px 0; border:1px solid lightgray; font-size:14px; width:100%; box-sizing:border-box;
-      background-color: white; /* ADDED BASE COLOR */
+      background-color: white; 
     }
     .controls h4 { margin:10px 0 6px; }
     
-    /* Ensure only the background and color of the input fields are changed, 
-       not the actual color picker or range inputs */
     #border-color-picker, .controls input[type="range"] {
-        background-color: #fff; /* Keep white for visual inputs */
+        background-color: #fff; 
         color: #000;
         font-weight: normal;
     }
-    /* ------------------------------------- */
 
     .grid-container { display:grid; gap:0.5mm; width:100%; }
 
-    /* REMOVED hardcoded width/height from here to allow dynamic sizing in JS */
     .box {
       display:flex; justify-content:center; align-items:center; overflow:hidden; position:relative;
       border:0pt solid black; box-sizing:border-box; color:#777; font-size:.8em; cursor:pointer;
@@ -93,7 +88,6 @@
 
     .box-image { width:100%; height:100%; object-fit:cover; display:none; position:absolute; top:0; left:0; }
 
-    /* selected visual */
     .box.selected { outline:2px solid red; box-shadow:0 0 0 2px red; }
 
     .hidden-input { display:none; }
@@ -102,7 +96,6 @@
     .modal-content { background:#fff; margin:4% auto; padding:16px; border:1px solid gray; width:92%; max-width:860px; box-shadow:0 4px 8px rgba(0,0,0,0.2); position:relative; }
 
     .editor-wrapper { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-start; }
-    /* Kept editor frame size hardcoded for visual stability, reflecting a common ID/Passport size aspect ratio */
     .editor-canvas-frame { width:calc(35mm * 2.2); height:calc(45mm * 2.2); background:lightgray; position:relative; overflow:hidden; border:1px solid gray; display:flex; align-items:center; justify-content:center; }
     .editor-image { position:absolute; transform-origin:center center; cursor:grab; user-select:none; -webkit-user-drag:none; }
 
@@ -111,148 +104,63 @@
     @media print {
       .controls-panel-container, .modal, #toggle-controls-btn, #toggle-bg-btn, #togglePaperBtn { display:none; }
       body { padding:0; background-color:white; }
-      /* Print pages should have no padding/margin and page-break rules only applied to the paper itself */
-      .a4-page, .a5-page, .a6-page, .us-letter-page { width:auto !important; min-height:auto !important; margin:0; padding:0 !important; box-shadow:none; page-break-after:always; }
+      /* 💡 FIX 2: Removed conflicting padding:0!important. JS will set margins as padding. */
+      .a4-page, .a5-page, .a6-page, .us-letter-page { 
+          width:auto !important; 
+          min-height:auto !important; 
+          margin:0; 
+          /* padding:0; <-- Removed to allow JS inline style padding to take effect */
+          box-shadow:none; 
+          page-break-after:always; 
+      }
       .grid-container { gap:0.5mm !important; }
-      /* default: no border for boxes unless we inject rules before printing */
       .box { border:0pt solid black !important; box-shadow:none !important; background:white !important; cursor:default; }
       .box span, .box.selected { display:none !important; outline:none !important; }
       @page { margin:0; }
     }
     
     /* ------------------------------------------------------------------- */
-    /* 🟡 CHANGE COLOR HERE: UNIQUE BUTTON/SELECT STYLES */
+    /* 🟡 CHANGE COLOR HERE: UNIQUE BUTTON/SELECT STYLES (Kept as is) */
     /* ------------------------------------------------------------------- */
-    
-    /* 1. Show Screen Paper Button */
     #togglePaperBtn {
-        background-color: yellow !important; 
-        color: black !important; 
-        border-color: black !important;
-        text-align: center;
-        font-weight: bold !important;
-        border-width: 2px !important;
+        background-color: yellow !important; color: black !important; border-color: black !important;
+        text-align: center; font-weight: bold !important; border-width: 2px !important;
     }
-    
-    /* 2. Paper Size Select Box */
-    #paper-size-select {
-        background-color: purple !important;
-        color: white !important;
-        border-color: yellow !important;
-        text-align: center;
-        font-weight: bold !important;
-        border-width: 2px !important;
-        /* FIX 2: Ensure custom background applies to select boxes */
-        -webkit-appearance: none !important; 
-        -moz-appearance: none !important;    
-        appearance: none !important;         
+    #paper-size-select, #photo-size-select, #layout-select, #duplicate-count {
+        background-color: purple !important; color: white !important; border-color: yellow !important;
+        text-align: center; font-weight: bold !important; border-width: 2px !important;
+        -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important;         
     }
-
-    /* 3. Photo Size Select Box */
-    #photo-size-select {
-        background-color: navy !important;
-        color: white !important;
-        border-color: purple !important;
-        text-align: center;
-        font-weight: bold !important;
-        border-width: 2px !important;
-        /* FIX 2: Ensure custom background applies to select boxes */
-        -webkit-appearance: none !important; 
-        -moz-appearance: none !important;    
-        appearance: none !important;
-    }
-    
-    /* 4. Layout Select Box */
-    #layout-select {
-        background-color: #1abc9c !important;
-        color: white !important;
-        border-color: navy !important;
-        text-align: center;
-        font-weight: bold !important;
-        border-width: 2px !important;
-        /* FIX 2: Ensure custom background applies to select boxes */
-        -webkit-appearance: none !important; 
-        -moz-appearance: none !important;    
-        appearance: none !important;
-    }
-
-    /* Custom Layout Number Inputs (High-contrast fix) */
+    #photo-size-select { background-color: navy !important; border-color: purple !important; }
+    #layout-select { background-color: #1abc9c !important; border-color: navy !important; }
+    #duplicate-count { background-color: #3498db !important; border-color: #2980b9 !important; }
     #custom-cols, #custom-rows {
-        background-color: #f39c12 !important; /* Dark Orange background */
-        color: #34495e !important; /* Dark Blue font */
-        border: 2px solid #1abc9c !important;
+        background-color: #f39c12 !important; color: #34495e !important; border: 2px solid #1abc9c !important;
         font-weight: bold !important;
     }
-    
-    /* 5. Apply Layout/Paper/Photo Button */
     .controls button[onclick="resetGrid()"] {
-        background-color: orange !important;
-        color: white !important;
-        border-color: #f39c12 !important;
-        text-align: center;
-        font-weight: bold !important;
-        border-width: 2px !important;
+        background-color: orange !important; color: white !important; border-color: #f39c12 !important;
+        text-align: center; font-weight: bold !important; border-width: 2px !important;
     }
-    
-    /* 6. Border Options Container Text */
-    .controls > div[style*="background-color: #f0f8ff"]:not(:has(> h4:contains("Margins"))) {
-        color: #34495e !important; /* Dark Blue for visibility on light blue background */
-        border: 2px solid orange !important;
-        text-align: center;
+    /* Margin and Border Options Container Text (Updated to cover all divs with the specific background) */
+    .controls > div[style*="background-color: #f0f8ff"] {
+        color: #34495e !important; border: 2px solid orange !important; text-align: center;
     }
-    
-    /* 7. Apply Border Button */
     #apply-border-btn {
-        background-color: #2980b9 !important;
-        color: white !important;
-        border-color: #f0f8ff !important;
-        text-align: center;
-        font-weight: bold !important;
-        border-width: 2px !important;
+        background-color: #2980b9 !important; color: white !important; border-color: #f0f8ff !important;
+        text-align: center; font-weight: bold !important; border-width: 2px !important;
     }
-
-    /* 8. Duplicates Select Box */
-    #duplicate-count {
-        background-color: #3498db !important;
-        color: white !important;
-        border-color: #2980b9 !important;
-        text-align: center;
-        font-weight: bold !important;
-        border-width: 2px !important;
-        /* FIX 2: Ensure custom background applies to select boxes */
-        -webkit-appearance: none !important; 
-        -moz-appearance: none !important;    
-        appearance: none !important;
-    }
-
-    /* 9. Print All Photo Sheets Button */
     #print-btn {
-        background-color:  crimson !important;
-        color: white !important;
-        border-color: #3498db !important;
-        text-align: center;
-        font-weight: bold !important;
-        border-width: 2px !important;
+        background-color:  crimson !important; color: white !important; border-color: #3498db !important;
+        text-align: center; font-weight: bold !important; border-width: 2px !important;
     }
-    
-    /* 10. Choose Photos Button (Multi Upload) */
     #multi-upload-btn {
-        background-color: #2ecc71 !important;
-        color: white !important;
-        border-color: #c0392b !important;
-        text-align: center;
-        font-weight: bold !important;
-        border-width: 2px !important;
+        background-color: #2ecc71 !important; color: white !important; border-color: #c0392b !important;
+        text-align: center; font-weight: bold !important; border-width: 2px !important;
     }
-    
-    /* 11. Add Single Photo Button */
     #single-upload-btn {
-        background-color:  #95a5a6 !important;
-        color: white !important;
-        border-color: #2ecc71 !important;
-        text-align: center;
-        font-weight: bold !important;
-        border-width: 2px !important;
+        background-color:  #95a5a6 !important; color: white !important; border-color: #2ecc71 !important;
+        text-align: center; font-weight: bold !important; border-width: 2px !important;
     }
   </style>
 </head>
@@ -398,7 +306,7 @@ const PHOTO_SIZES = {
 let currentPhotoWidth = PHOTO_SIZES['35x45'].w;
 let currentPhotoHeight = PHOTO_SIZES['35x45'].h;
 
-// MODIFIED: Initial margin values in JavaScript set to 0
+// 💡 Margin property added to currentLayout
 let currentLayout = { mode:'normal', cols:0, rows:0, photosPerPage:0, size:'a4', margins: { top: 0, bottom: 0, left: 0, right: 0 } }; 
 let currentPageIndex = 0, nextBoxIndex = 1;
 let selectedPhotoElements = new Set(); // support multi-select
@@ -408,8 +316,7 @@ let userBorderStyle = '0pt solid black'; // saved preference for print/new uploa
 function calculateLayout(){
   const size = PAPER_SIZES[currentLayout.size];
   
-  // MODIFICATION 4: Read custom margins
-  // Use || 0 to ensure margin values are not null/undefined/NaN, resulting in 0 if the input field is empty (which it is not by default now)
+  // 💡 Read custom margins from input fields (defaults to 0 if empty)
   const marginTop = parseFloat(document.getElementById('margin-top').value) || 0;
   const marginBottom = parseFloat(document.getElementById('margin-bottom').value) || 0;
   const marginLeft = parseFloat(document.getElementById('margin-left').value) || 0;
@@ -427,7 +334,7 @@ function calculateLayout(){
     cols = parseInt(document.getElementById('custom-cols').value) || 1;
     rows = parseInt(document.getElementById('custom-rows').value) || 1;
   } else {
-    // UPDATED: Use the calculated printable dimensions to determine max fit
+    // Use the calculated printable dimensions to determine max fit
     cols = Math.floor((printableWidth + GAP_MM) / (currentPhotoWidth + GAP_MM));
     rows = Math.floor((printableHeight + GAP_MM) / (currentPhotoHeight + GAP_MM));
   }
@@ -446,16 +353,52 @@ function updatePhotoSizeVariable(){
   }
 }
 
+// 💡 FIX: Updated resetGrid to save and re-insert photos
 window.resetGrid = function(){
+  // 1. Store existing photos
+  const allPhotos = [];
+  document.querySelectorAll('.box[data-has-photo="true"]').forEach(box => {
+    const img = box.querySelector('.box-image');
+    allPhotos.push({
+      imageURL: box.dataset.imageURL,
+      filters: img.dataset.filters,
+      userBorderStyle: box.dataset.userBorderStyle,
+    });
+  });
+
+  // 2. Apply new settings and calculate layout
   currentLayout.size = document.getElementById('paper-size-select').value;
   currentLayout.mode = document.getElementById('layout-select').value;
-  calculateLayout(); // Recalculate layout and margins
+  updatePhotoSizeVariable(); // Ensure photo dimensions are updated before layout calculation
+  calculateLayout(); // Recalculate layout based on new settings/margins
+  
+  // 3. Clear the wrapper and reset page/box index counters
   const wrapper = document.getElementById('page-wrapper');
   wrapper.innerHTML = '';
   currentPageIndex = 0; nextBoxIndex = 1;
+  
+  // 4. Re-draw the grid (create initial page)
   createPage(0);
-  // re-create any print style rules if present
+  
+  // 5. Re-insert all stored photos
+  allPhotos.forEach(photo => {
+    // Ensure there is a page and space for the photo in the new grid
+    checkAndCreateNewPage();
+    
+    // Insert the photo into the next available box
+    updateBox(currentPageIndex, nextBoxIndex, photo.imageURL, photo.filters);
+    
+    // Also re-apply the saved border style
+    const box = document.getElementById(`box-${currentPageIndex}-${nextBoxIndex}`);
+    if(box) box.dataset.userBorderStyle = photo.userBorderStyle;
+    
+    // Advance to the next box
+    nextBoxIndex++;
+  });
+  
+  // 6. Final cleanup and print prep
   preparePrintStyles();
+  selectedPhotoElements.clear(); // Clear selections since box IDs have changed
 };
 
 function createPage(pageIndex){
@@ -465,17 +408,19 @@ function createPage(pageIndex){
   pageDiv.id = `page-${pageIndex}`;
   if (document.getElementById('togglePaperBtn').textContent === 'Show Screen Paper') pageDiv.classList.add('hidden');
 
-  // MODIFICATION 5: Apply custom padding to the pageDiv based on user margin input
+  // 💡 Apply custom padding to the pageDiv based on user margin input
   const m = currentLayout.margins;
   if (m) {
     // CSS padding order: Top, Right, Bottom, Left
     pageDiv.style.padding = `${m.top}mm ${m.right}mm ${m.bottom}mm ${m.left}mm`;
+  } else {
+    // If margins aren't calculated yet (e.g., initial load), use default 10mm
+    pageDiv.style.padding = '10mm'; 
   }
   
   const gridContainer = document.createElement('div');
   gridContainer.classList.add('grid-container');
   gridContainer.id = `grid-${pageIndex}`;
-  // UPDATED: use dynamic photo width
   gridContainer.style.gridTemplateColumns = `repeat(${currentLayout.cols}, ${currentPhotoWidth}mm)`;
   gridContainer.style.gridTemplateRows = `repeat(${currentLayout.rows}, ${currentPhotoHeight}mm)`;
 
@@ -483,13 +428,11 @@ function createPage(pageIndex){
     const box = document.createElement('div');
     box.classList.add('box');
     box.id = `box-${pageIndex}-${i}`;
-    // NEW: Set dynamic width/height
     box.style.width = `${currentPhotoWidth}mm`;
     box.style.height = `${currentPhotoHeight}mm`;
     box.style.border = '0pt solid black';
     box.dataset.userBorderStyle = '0pt solid black';
     box.innerHTML = `<img class="box-image" id="box-img-${pageIndex}-${i}" src="" alt="Photo" crossorigin="anonymous"><span>${i}</span>`;
-    // attach unified click handlers (handles selection mode & edit)
     box.addEventListener('click', boxClickHandler);
     box.addEventListener('dblclick', boxDoubleClickHandler);
     gridContainer.appendChild(box);
@@ -531,7 +474,7 @@ function clearBox(boxElement){
   boxElement.classList.remove('selected');
 }
 
-/* upload handlers */
+/* upload handlers (rest unchanged) */
 function processAndDuplicate(file){
   if (!file) return;
   const totalCopies = parseInt(document.getElementById('duplicate-count').value) || 1;
@@ -549,8 +492,7 @@ function processAndDuplicate(file){
 function handleSinglePhotoUpload(file){ processAndDuplicate(file); }
 function handleMultiPhotoUpload(files){ if (!files || files.length===0) return; Array.from(files).forEach(f => processAndDuplicate(f)); }
 
-/* ----- Border options (multi-select support) ----- */
-
+/* ----- Border options (rest unchanged) ----- */
 function updatePrintBorderVariable(){
   const showBorder = document.getElementById('show-border-checkbox').checked;
   const color = document.getElementById('border-color-picker').value;
@@ -560,11 +502,9 @@ function updatePrintBorderVariable(){
   } else {
     userBorderStyle = '0pt solid black';
   }
-  // store css var (not used directly for per-box printing here, but kept)
   document.body.style.setProperty('--print-border-style', userBorderStyle);
 }
 
-/* Apply border: now applies to ALL selected boxes (screen preview) and saves per-box dataset for printing */
 function applyBorderOptions(){
   updatePrintBorderVariable();
   const showBorder = document.getElementById('show-border-checkbox').checked;
@@ -572,39 +512,33 @@ function applyBorderOptions(){
 
   let targetBoxes;
   if (applyToAll){
-    // Target ALL boxes that have a photo
     targetBoxes = Array.from(document.querySelectorAll('.box[data-has-photo="true"]'));
     if (targetBoxes.length === 0){
         alert('No photo uploaded yet. Border preference saved for future uploads/prints.');
         return;
     }
   } else {
-    // Target ONLY selected boxes
     const selectedIds = Array.from(selectedPhotoElements);
     if (selectedIds.length === 0){
         alert('No photo selected. Border preference saved for future uploads/prints.');
         return;
     }
-    // Convert selected IDs back to box elements
     targetBoxes = selectedIds.map(id => document.getElementById(id)).filter(b => b);
   }
 
-  // Apply border logic to the target boxes
   targetBoxes.forEach(box => {
     if (showBorder && userBorderStyle !== '0pt solid black'){
-      box.style.border = userBorderStyle; // show on screen
-      box.dataset.userBorderStyle = userBorderStyle; // save for print
+      box.style.border = userBorderStyle; 
+      box.dataset.userBorderStyle = userBorderStyle; 
     } else {
       box.style.border = '0pt solid black';
       box.dataset.userBorderStyle = '0pt solid black';
     }
   });
-
-  // regenerate print rules now
   preparePrintStyles();
 }
 
-/* ---------- prepare print styles for boxes that should have border ---------- */
+/* ---------- prepare print styles for boxes that should have border (rest unchanged) ---------- */
 function preparePrintStyles(){
   const existing = document.getElementById('print-box-borders');
   if (existing) existing.remove();
@@ -613,9 +547,6 @@ function preparePrintStyles(){
   boxes.forEach(box => {
     const style = box.dataset.userBorderStyle || '0pt solid black';
     if (style && style !== '0pt solid black'){
-      // create rule specific to this box id
-      // CSS.escape is used here for safety but may cause issues in old browsers.
-      // IDs generated here (box-x-y) are safe, so it's generally fine.
       rules.push(`#${CSS.escape(box.id)}{ border: ${style} !important; }`);
     }
   });
@@ -631,17 +562,11 @@ function removePrintStyles(){ const ex = document.getElementById('print-box-bord
 window.addEventListener('beforeprint', preparePrintStyles);
 window.addEventListener('afterprint', removePrintStyles);
 
-/* ---------- selection and edit handlers ---------- */
-
-/* clicking a box:
-   - if selection mode ON: toggle selection (multi-select supported)
-   - if selection mode OFF: single click opens editor (same as original behavior)
-*/
+/* ---------- selection and edit handlers (rest unchanged) ---------- */
 function boxClickHandler(e){
   const box = e.currentTarget;
   const selectionMode = document.getElementById('selection-mode-checkbox').checked;
   if (selectionMode){
-    // toggle selection
     if (box.dataset.hasPhoto !== 'true') return;
     if (selectedPhotoElements.has(box.id)){
       selectedPhotoElements.delete(box.id);
@@ -650,39 +575,20 @@ function boxClickHandler(e){
     } else {
       selectedPhotoElements.add(box.id);
       box.classList.add('selected');
-      // if border preview is ON, show preview border
       const showBorder = document.getElementById('show-border-checkbox').checked;
       if (showBorder && userBorderStyle !== '0pt solid black') box.style.border = userBorderStyle;
     }
   } else {
-    // not selection mode: open editor (only if has photo)
     if (box.dataset.hasPhoto === 'true') openEditModalFromBox(box);
   }
 }
 
-/* double-click to edit even when selection-mode is on */
 function boxDoubleClickHandler(e){
   const box = e.currentTarget;
   if (box.dataset.hasPhoto === 'true') openEditModalFromBox(box);
   e.stopPropagation();
 }
 
-/* open editor from a box element (keeps selected visual briefly) */
-function openEditModalFromBox(boxElement){
-  // deselect previous modal selection but keep multi-selection set unchanged
-  // visually mark this box as selected for modal editing
-  // store previous inline border to restore later
-  const prevSelected = Array.from(document.querySelectorAll('.box.selected'));
-  prevSelected.forEach(b => b.classList.remove('selected'));
-  // mark current as selected for editor
-  boxElement.classList.add('selected');
-  // set a temp variable to know that modal is editing this box id
-  _modalEditingBoxId = boxElement.id;
-  // open editor with that box
-  openEditModal({ currentTarget: boxElement });
-}
-
-/* Modal editing uses the same openEditModal but expects event.currentTarget = boxElement */
 let _modalEditingBoxId = null;
 const editorModal = document.getElementById('edit-modal');
 const editorFrame = document.getElementById('editor-frame');
@@ -695,27 +601,27 @@ const deleteBtn = document.getElementById('delete-btn');
 const replaceBtn = document.getElementById('replace-btn');
 const closeModalBtn = document.getElementById('close-modal-btn');
 const replaceFileInput = document.getElementById('replace-file-input');
-
 let editingState = { pageIndex:null, boxIndex:null, imgNaturalWidth:0, imgNaturalHeight:0, posX:0, posY:0, scale:1, brightness:1, contrast:1, isDragging:false, dragStart:{x:0,y:0}, imgOffsetOnDragStart:{x:0,y:0} };
 
+function openEditModalFromBox(boxElement){
+  const prevSelected = Array.from(document.querySelectorAll('.box.selected'));
+  prevSelected.forEach(b => b.classList.remove('selected'));
+  boxElement.classList.add('selected');
+  _modalEditingBoxId = boxElement.id;
+  openEditModal({ currentTarget: boxElement });
+}
+
 function openEditModal(event){
-  // event.currentTarget is the box element
   const boxElement = event.currentTarget;
   if (boxElement.dataset.hasPhoto !== 'true') return;
-
-  // visually mark (but keep multi-selection set intact)
   boxElement.classList.add('selected');
-  // set editing id
   _modalEditingBoxId = boxElement.id;
-
-  // show border if the show-border checkbox is on (preview)
   const showBorder = document.getElementById('show-border-checkbox').checked;
   const saved = boxElement.dataset.userBorderStyle || '0pt solid black';
   if (showBorder && saved !== '0pt solid black') boxElement.style.border = saved;
   else if (showBorder && userBorderStyle !== '0pt solid black') boxElement.style.border = userBorderStyle;
   else boxElement.style.border = '0pt solid black';
 
-  // extract page and box index
   const parts = boxElement.id.split('-'); const pageIndex = Number(parts[1]); const boxIndex = Number(parts[2]);
   const imgElement = boxElement.querySelector('.box-image'); const currentFilters = imgElement.dataset.filters || 'brightness(100%) contrast(100%)';
   const brightnessMatch = currentFilters.match(/brightness\((\d+)%\)/); const contrastMatch = currentFilters.match(/contrast\((\d+)%\)/);
@@ -737,7 +643,6 @@ function openEditModal(event){
   editorModal.style.display = 'block'; editorModal.setAttribute('aria-hidden','false');
 }
 
-/* editor helpers */
 function fitImageToFrame(){
   const frameRect = editorFrame.getBoundingClientRect();
   const fw = frameRect.width, fh = frameRect.height;
@@ -780,11 +685,9 @@ window.addEventListener('mouseup', ()=>{ editingState.isDragging = false; editor
 function updateBrightnessContrastFromSliders(){ editingState.brightness = Number(brightnessSlider.value)/100; editingState.contrast = Number(contrastSlider.value)/100; applyEditorTransform(); }
 brightnessSlider.addEventListener('input', updateBrightnessContrastFromSliders); contrastSlider.addEventListener('input', updateBrightnessContrastFromSliders);
 
-/* save edited image back to box */
 saveEditBtn.addEventListener('click', ()=>{
   if (editingState.pageIndex == null) return;
   const DPI = 300; const pxPerMm = DPI/25.4;
-  // UPDATED: use dynamic photo size variables for canvas resolution
   const targetW_px = Math.round(currentPhotoWidth * pxPerMm); const targetH_px = Math.round(currentPhotoHeight * pxPerMm);
   const canvas = document.createElement('canvas'); canvas.width = targetW_px; canvas.height = targetH_px; const ctx = canvas.getContext('2d');
 
@@ -811,7 +714,6 @@ saveEditBtn.addEventListener('click', ()=>{
   tempImg.src = editorImg.src;
 });
 
-/* delete & replace in modal */
 deleteBtn.addEventListener('click', ()=>{
   if (!_modalEditingBoxId) return;
   const box = document.getElementById(_modalEditingBoxId);
@@ -832,11 +734,9 @@ replaceFileInput.addEventListener('change', (ev)=>{
   reader.readAsDataURL(f);
 });
 
-/* close modal */
 closeModalBtn.addEventListener('click', closeModal);
 function closeModal(){
   editorModal.style.display = 'none'; editorModal.setAttribute('aria-hidden','true');
-  // remove modal editing selection visuals, but keep multi-selection
   if (_modalEditingBoxId){
     const modalBox = document.getElementById(_modalEditingBoxId);
     if (modalBox && !selectedPhotoElements.has(modalBox.id)){
@@ -848,18 +748,14 @@ function closeModal(){
   editingState.pageIndex = null; editingState.boxIndex = null;
 }
 
-/* ---------- small utilities & init ---------- */
+/* ---------- small utilities & init (rest unchanged) ---------- */
 
-// 2. JS Change: Replaced the simple function with one that updates the icon.
 function toggleControls(){ 
   const panel = document.getElementById('controls-panel-container'); 
   panel.classList.toggle('hidden'); 
   const btn = document.getElementById('toggle-controls-btn'); 
-  
-  // --- UPDATED: Icon variables for easy change (Change '☰' and '✖' for new icons) ---
-  const ICON_SHOW = '☰'; // Icon when controls are HIDDEN (to show them)
-  const ICON_HIDE = '✖'; // Icon when controls are VISIBLE (to hide them)
-  // --- END OF ICON VARIABLES ---
+  const ICON_SHOW = '☰'; 
+  const ICON_HIDE = '✖'; 
 
   if (panel.classList.contains('hidden')) { 
     btn.innerHTML = ICON_SHOW; 
@@ -879,11 +775,9 @@ function toggleBackground(){
   document.getElementById('toggle-bg-btn').textContent = document.body.classList.contains('bg-image') ? '💧 Show Gradient Background' : '🌈 Show Background Image';
 }
 
-/* selection helpers: if a selected box is clicked for editing while selection mode off, open modal (handled above) */
-
 /* ---------- Initialization ---------- */
 document.addEventListener('DOMContentLoaded', ()=>{
-  // initial hide pages (as original)
+  // initial hide pages
   const allPages = document.querySelectorAll('.a4-page, .a5-page, .a6-page, .us-letter-page');
   allPages.forEach(p=>p.classList.add('hidden'));
   document.getElementById('togglePaperBtn').textContent = 'Show Screen Paper';
@@ -900,16 +794,16 @@ document.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('border-width-input').addEventListener('input', updatePrintBorderVariable);
 
   // layout & pages
+  // 💡 Bind margin inputs to resetGrid to apply changes immediately
   const marginInputs = document.querySelectorAll('#margin-top, #margin-bottom, #margin-left, #margin-right');
   marginInputs.forEach(input => input.addEventListener('input', resetGrid));
-  
-  // NEW: Bind the photo size selector to update variables and recalculate the grid
+
   document.getElementById('photo-size-select').addEventListener('change', ()=>{
     updatePhotoSizeVariable();
     resetGrid();
   });
   
-  // NEW: Set initial size based on HTML selection, then calculate and create grid
+  // Initial setup
   updatePhotoSizeVariable();
   calculateLayout();
   createPage(0);
@@ -937,4 +831,3 @@ document.addEventListener('DOMContentLoaded', ()=>{
 </script>
 </body>
 </html>
-
