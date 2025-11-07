@@ -27,7 +27,8 @@
     }
     body.bg-gradient { background: linear-gradient(to bottom right, skyblue, #ff4b4b) !important; }
 
-    #page-wrapper { display:flex; flex-direction:column; align-items:center; width:100%; }
+    /* --- MODIFICATION HERE: Changed align-items:center to align-items:flex-start to align paper to the left --- */
+    #page-wrapper { display:flex; flex-direction:column; align-items:flex-start; width:100%; }
 
     .a4-page { width:210mm; min-height:297mm; }
     .a5-page { width:148mm; min-height:210mm; }
