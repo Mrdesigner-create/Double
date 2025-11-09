@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>All-in-one-converter </title>
+  <title>All-in-One-converter </title>
 
   <style>
     /* ---------- Styles (keeps same look as your original) ---------- */
@@ -138,6 +138,7 @@
         background-color: #f39c12 !important; color: #34495e !important; border: 2px solid #1abc9c !important;
         font-weight: bold !important;
     }
+    /* Note: This button is now redundant for layout changes but kept for user consistency/manual reset */
     .controls button[onclick="resetGrid()"] {
         background-color: orange !important; color: white !important; border-color: #f39c12 !important;
         text-align: center; font-weight: bold !important; border-width: 2px !important;
@@ -706,7 +707,8 @@ saveEditBtn.addEventListener('click', ()=>{
     const sHeight = Math.max(1, Math.min(off.height - sy, imageH - (sy - imageY0)));
     ctx.fillStyle = '#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
     try { ctx.drawImage(off, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height); } catch(err){ console.error(err); ctx.drawImage(off, 0,0,off.width,off.height,0,0,canvas.width,canvas.height); }
-    const dataURL = canvas.toDataURL('image/jpeg', 0.92);
+    // 💡 QUALITY CHANGE: Changed 0.92 to 1.0 (Max JPEG Quality)
+    const dataURL = canvas.toDataURL('image/jpeg', 1.0);
     const pageIndex = editingState.pageIndex; const boxIndex = editingState.boxIndex;
     updateBox(pageIndex, boxIndex, dataURL, 'brightness(100%) contrast(100%)');
     closeModal();
@@ -775,7 +777,7 @@ function toggleBackground(){
   document.getElementById('toggle-bg-btn').textContent = document.body.classList.contains('bg-image') ? '💧 Show Gradient Background' : '🌈 Show Background Image';
 }
 
-/* ---------- Initialization ---------- */
+/* ---------- Initialization (Updated for Live Update) ---------- */
 document.addEventListener('DOMContentLoaded', ()=>{
   // initial hide pages
   const allPages = document.querySelectorAll('.a4-page, .a5-page, .a6-page, .us-letter-page');
@@ -793,24 +795,38 @@ document.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('border-color-picker').addEventListener('input', updatePrintBorderVariable);
   document.getElementById('border-width-input').addEventListener('input', updatePrintBorderVariable);
 
-  // layout & pages
-  // 💡 Bind margin inputs to resetGrid to apply changes immediately
+  // --- START OF LIVE UPDATE BINDINGS ---
+  
+  // 1. Paper Margins: Live update on input
   const marginInputs = document.querySelectorAll('#margin-top, #margin-bottom, #margin-left, #margin-right');
   marginInputs.forEach(input => input.addEventListener('input', resetGrid));
 
+  // 2. Photo Size: Live update on change
   document.getElementById('photo-size-select').addEventListener('change', ()=>{
     updatePhotoSizeVariable();
     resetGrid();
   });
+  
+  // 3. Paper Size: Live update on change
+  document.getElementById('paper-size-select').addEventListener('change', resetGrid);
+
+  // 4. Layout Selection: Live update on change and toggle custom options
+  document.getElementById('layout-select').addEventListener('change', ()=>{
+    document.getElementById('custom-layout-options').style.display = document.getElementById('layout-select').value === 'custom' ? 'block' : 'none';
+    resetGrid();
+  });
+  
+  // 5. Custom Columns/Rows: Live update on input
+  document.getElementById('custom-cols').addEventListener('input', resetGrid);
+  document.getElementById('custom-rows').addEventListener('input', resetGrid);
+
+  // --- END OF LIVE UPDATE BINDINGS ---
   
   // Initial setup
   updatePhotoSizeVariable();
   calculateLayout();
   createPage(0);
 
-  document.getElementById('layout-select').addEventListener('change', ()=>{
-    document.getElementById('custom-layout-options').style.display = document.getElementById('layout-select').value === 'custom' ? 'block' : 'none';
-  });
   document.getElementById('togglePaperBtn').addEventListener('click', togglePaper);
 
   // upload listeners
