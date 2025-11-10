@@ -28,7 +28,10 @@
     body.bg-gradient { background: linear-gradient(to bottom right, skyblue, #ff4b4b) !important; }
 
     /* 💡 FIX 1: Align paper to the left for proper margin application during printing */
-    #page-wrapper { display:flex; flex-direction:column; align-items:flex-start; width:100%; }
+    /* *** MODIFICATION 1: Set z-index lower than controls (10000) 
+       to ensure the paper appears behind the control panel.
+    */
+    #page-wrapper { display:flex; flex-direction:column; align-items:flex-start; width:100%; z-index: 5000; position: relative; }
 
     .a4-page { width:210mm; min-height:297mm; }
     .a5-page { width:148mm; min-height:210mm; }
@@ -49,7 +52,10 @@
       text-align:center; max-height:80vh; overflow-y:auto; overflow-x:hidden;
       box-shadow: 5px 5px 15px rgba(0,0,0,0.25), inset -2px -2px 5px rgba(255,255,255,0.8);
     }
-    .controls-panel-container { position:fixed; top:20px; right:20px; transition:right 1.10s; }
+    /* *** MODIFICATION 2: Explicitly set z-index high (10000) for control panel container 
+       to ensure it is always on top.
+    */
+    .controls-panel-container { position:fixed; top:20px; right:20px; transition:right 1.10s; z-index: 10000; }
     .controls-panel-container.hidden { right:-382px; }
 
     /* --- UPDATED: Use variables for color control --- */
@@ -171,9 +177,7 @@
 
   <div id="controls-panel-container" class="controls-panel-container hidden">
     <div class="controls">
-      <button id="toggle-controls-btn">◀</button>
-
-      <div id="controls-content">
+      <button id="toggle-controls-btn">☰</button> <div id="controls-content">
         <button id="togglePaperBtn">Show Screen Paper</button>
 
         <h4>📄 Paper Size:</h4>
@@ -759,6 +763,7 @@ function toggleControls(){
   const ICON_SHOW = '☰'; 
   const ICON_HIDE = '✖'; 
 
+  // *** MODIFICATION 3: Corrected logic for icon display ***
   if (panel.classList.contains('hidden')) { 
     btn.innerHTML = ICON_SHOW; 
   } else { 
