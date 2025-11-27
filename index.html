@@ -27,8 +27,8 @@
     }
     body.bg-gradient { background: linear-gradient(to bottom right, skyblue, #ff4b4b) !important; }
 
-    /* 💡 FIX 1: Align paper to the left for proper margin application during printing */
-    /* *** MODIFICATION 1: Set z-index lower than controls (10000) 
+    /* FIX 1: Align paper to the left for proper margin application during printing */
+    /* MODIFICATION 1: Set z-index lower than controls (10000) 
        to ensure the paper appears behind the control panel.
     */
     #page-wrapper { display:flex; flex-direction:column; align-items:flex-start; width:100%; z-index: 5000; position: relative; }
@@ -42,7 +42,6 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       background:#fff;
       margin-bottom:20px;
-      /* Original padding removed. Margins are set by JS as custom padding. */
       padding:10mm; 
       box-sizing:border-box;
     }
@@ -52,7 +51,7 @@
       text-align:center; max-height:80vh; overflow-y:auto; overflow-x:hidden;
       box-shadow: 5px 5px 15px rgba(0,0,0,0.25), inset -2px -2px 5px rgba(255,255,255,0.8);
     }
-    /* *** MODIFICATION 2: Explicitly set z-index high (10000) for control panel container 
+    /* MODIFICATION 2: Explicitly set z-index high (10000) for control panel container 
        to ensure it is always on top.
     */
     .controls-panel-container { position:fixed; top:20px; right:20px; transition:right 1.10s; z-index: 10000; }
@@ -107,15 +106,20 @@
 
     .small-note { font-size:13px; color:black; margin-top:5px; }
 
+    /* Styling for Drag-and-Drop feedback */
+    body.drag-over {
+        border: 4px dashed #ff4b4b;
+        background-color: rgba(255, 75, 75, 0.1) !important;
+    }
+
     @media print {
       .controls-panel-container, .modal, #toggle-controls-btn, #toggle-bg-btn, #togglePaperBtn { display:none; }
       body { padding:0; background-color:white; }
-      /* 💡 FIX 2: Removed conflicting padding:0!important. JS will set margins as padding. */
+      /* FIX 2: Removed conflicting padding:0!important. JS will set margins as padding. */
       .a4-page, .a5-page, .a6-page, .us-letter-page { 
           width:auto !important; 
           min-height:auto !important; 
           margin:0; 
-          /* padding:0; <-- Removed to allow JS inline style padding to take effect */
           box-shadow:none; 
           page-break-after:always; 
       }
@@ -204,7 +208,7 @@
           <option value="5x7">5x7 in (127x178 mm)</option>
           <option value="9x13">3.5x5 in (90x130 mm)</option>
           <option value="30x40">30x40 mm (Passport)</option>
-          <option value="35x50" selected>35x50 mm (ID/Visa)</option>
+          <option value="35x50">35x50 mm (ID/Visa)</option>
           <option value="35x45" selected>35x45 mm (ID/Visa)</option>
           <option value="4.5">Default (45x45 mm)</option>
         </select>
@@ -250,7 +254,10 @@
         <button id="multi-upload-btn">➕ Choose Photos (Creates N copies per file)</button>
         <button id="single-upload-btn">➕ Add Single Photo</button>
 
-        <p style="font-size:.85em; margin-top:10px;">Tip: Turn ON <strong>Selection mode</strong> to select many photos. Double-click a photo to edit it.</p>
+        <p style="font-size:.85em; margin-top:10px;">
+          Tip: Turn ON <strong>Selection mode</strong> to select many photos. 
+          Double-click a photo to edit it. You can also **paste** multiple photos or **drag-and-drop** files anywhere on the page.
+        </p>
 
         <button id="print-btn" onclick="window.print()">🖨️ Print All Photo Sheets</button>
       </div>
@@ -313,7 +320,7 @@ const PHOTO_SIZES = {
 let currentPhotoWidth = PHOTO_SIZES['35x45'].w;
 let currentPhotoHeight = PHOTO_SIZES['35x45'].h;
 
-// 💡 Margin property added to currentLayout
+// Margin property added to currentLayout
 let currentLayout = { mode:'normal', cols:0, rows:0, photosPerPage:0, size:'a4', margins: { top: 0, bottom: 0, left: 0, right: 0 } }; 
 let currentPageIndex = 0, nextBoxIndex = 1;
 let selectedPhotoElements = new Set(); // support multi-select
@@ -323,7 +330,7 @@ let userBorderStyle = '0pt solid black'; // saved preference for print/new uploa
 function calculateLayout(){
   const size = PAPER_SIZES[currentLayout.size];
   
-  // 💡 Read custom margins from input fields (defaults to 0 if empty)
+  // Read custom margins from input fields (defaults to 0 if empty)
   const marginTop = parseFloat(document.getElementById('margin-top').value) || 0;
   const marginBottom = parseFloat(document.getElementById('margin-bottom').value) || 0;
   const marginLeft = parseFloat(document.getElementById('margin-left').value) || 0;
@@ -360,7 +367,7 @@ function updatePhotoSizeVariable(){
   }
 }
 
-// 💡 FIX: Updated resetGrid to save and re-insert photos
+// FIX: Updated resetGrid to save and re-insert photos
 window.resetGrid = function(){
   // 1. Store existing photos
   const allPhotos = [];
@@ -415,7 +422,7 @@ function createPage(pageIndex){
   pageDiv.id = `page-${pageIndex}`;
   if (document.getElementById('togglePaperBtn').textContent === 'Show Screen Paper') pageDiv.classList.add('hidden');
 
-  // 💡 Apply custom padding to the pageDiv based on user margin input
+  // Apply custom padding to the pageDiv based on user margin input
   const m = currentLayout.margins;
   if (m) {
     // CSS padding order: Top, Right, Bottom, Left
@@ -481,23 +488,113 @@ function clearBox(boxElement){
   boxElement.classList.remove('selected');
 }
 
-/* upload handlers (rest unchanged) */
+
+/* FOR SERALLY PHOTO .  upload handlers */
 function processAndDuplicate(file){
   if (!file) return;
   const totalCopies = parseInt(document.getElementById('duplicate-count').value) || 1;
-  const reader = new FileReader();
-  reader.onload = function(e){
-    const imageURL = e.target.result;
-    for (let i=0;i<totalCopies;i++){
-      checkAndCreateNewPage();
-      updateBox(currentPageIndex, nextBoxIndex, imageURL);
-      nextBoxIndex++;
-    }
-  };
-  reader.readAsDataURL(file);
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const imageURL = e.target.result;
+      for (let i=0;i<totalCopies;i++){
+        checkAndCreateNewPage();
+        updateBox(currentPageIndex, nextBoxIndex, imageURL);
+        nextBoxIndex++;
+      }
+      resolve();
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
-function handleSinglePhotoUpload(file){ processAndDuplicate(file); }
-function handleMultiPhotoUpload(files){ if (!files || files.length===0) return; Array.from(files).forEach(f => processAndDuplicate(f)); }
+
+function handleSinglePhotoUpload(file){ 
+  // For single upload, we use the promise-based logic for processing the file.
+  if (file) {
+    processAndDuplicate(file).catch(console.error);
+  }
+}
+
+// *** MODIFIED FUNCTION: handleMultiPhotoUpload to process files serially ***
+async function handleMultiPhotoUpload(files){ 
+  if (!files || files.length===0) return; 
+  // Process files one by one to ensure the duplicates of the first file
+  // are all inserted before the second file begins its insertions.
+  for (const file of Array.from(files)) {
+    // Only process files that are images
+    if (file.type.startsWith('image/')) {
+        try {
+          // processAndDuplicate returns a Promise, so we await it
+          await processAndDuplicate(file);
+        } catch(e) {
+          console.error('Error processing file:', e);
+        }
+    }
+  }
+}
+// *** END MODIFIED FUNCTION ***
+
+// *** MODIFIED FUNCTION: handlePaste for clipboard image pasting (now supports multiple) ***
+function handlePaste(e) {
+  if (e.clipboardData && e.clipboardData.items) {
+    e.preventDefault(); // Prevent default action to handle files ourselves
+    const items = e.clipboardData.items;
+    const filesToProcess = [];
+
+    // 1. Collect all image files from clipboard
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          filesToProcess.push(file);
+        }
+      }
+    }
+
+    // 2. Process all collected files serially
+    if (filesToProcess.length > 0) {
+      handleMultiPhotoUpload(filesToProcess);
+      console.log(`${filesToProcess.length} image(s) pasted and processed.`);
+    }
+  }
+}
+// *** END MODIFIED FUNCTION ***
+
+
+  // *** NEW ADDITION: Enable pasting and drag-drop for multiple images ***
+  window.addEventListener('paste', handlePaste);
+  window.addEventListener('dragover', handleDragOver);
+  window.addEventListener('dragleave', handleDragLeave);
+  window.addEventListener('drop', handleDrop);
+  
+
+/* ----- Drag and Drop Handlers (NEW) ----- */
+
+function handleDragOver(e) {
+    e.preventDefault(); // Necessary to allow drop
+    e.stopPropagation();
+    document.body.classList.add('drag-over');
+    e.dataTransfer.dropEffect = 'copy';
+}
+
+function handleDragLeave(e) {
+    e.stopPropagation();
+    document.body.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    document.body.classList.remove('drag-over');
+
+    if (e.dataTransfer.files.length > 0) {
+        // Use the existing multi-upload handler for serial processing
+        handleMultiPhotoUpload(e.dataTransfer.files);
+        console.log(`Dropped ${e.dataTransfer.files.length} file(s).`);
+    }
+}
+
 
 /* ----- Border options (rest unchanged) ----- */
 function updatePrintBorderVariable(){
@@ -713,7 +810,7 @@ saveEditBtn.addEventListener('click', ()=>{
     const sHeight = Math.max(1, Math.min(off.height - sy, imageH - (sy - imageY0)));
     ctx.fillStyle = '#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
     try { ctx.drawImage(off, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height); } catch(err){ console.error(err); ctx.drawImage(off, 0,0,off.width,off.height,0,0,canvas.width,canvas.height); }
-    // 💡 QUALITY CHANGE: Changed 0.92 to 1.0 (Max JPEG Quality)
+    // QUALITY CHANGE: Changed 0.92 to 1.0 (Max JPEG Quality)
     const dataURL = canvas.toDataURL('image/jpeg', 1.0);
     const pageIndex = editingState.pageIndex; const boxIndex = editingState.boxIndex;
     updateBox(pageIndex, boxIndex, dataURL, 'brightness(100%) contrast(100%)');
@@ -765,7 +862,7 @@ function toggleControls(){
   const ICON_SHOW = '☰'; 
   const ICON_HIDE = '✖'; 
 
-  // *** MODIFICATION 3: Corrected logic for icon display ***
+  // MODIFICATION 3: Corrected logic for icon display
   if (panel.classList.contains('hidden')) { 
     btn.innerHTML = ICON_SHOW; 
   } else { 
@@ -784,7 +881,7 @@ function toggleBackground(){
   document.getElementById('toggle-bg-btn').textContent = document.body.classList.contains('bg-image') ? '💧 Show Gradient Background' : '🌈 Show Background Image';
 }
 
-/* ---------- Initialization (Updated for Live Update) ---------- */
+/* ---------- Initialization (Updated for Live Update, Paste, and Drag-Drop) ---------- */
 document.addEventListener('DOMContentLoaded', ()=>{
   // initial hide pages
   const allPages = document.querySelectorAll('.a4-page, .a5-page, .a6-page, .us-letter-page');
@@ -802,33 +899,18 @@ document.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('border-color-picker').addEventListener('input', updatePrintBorderVariable);
   document.getElementById('border-width-input').addEventListener('input', updatePrintBorderVariable);
 
-  // --- START OF LIVE UPDATE BINDINGS ---
-  
-  // 1. Paper Margins: Live update on input
+  // --- LIVE UPDATE BINDINGS ---
   const marginInputs = document.querySelectorAll('#margin-top, #margin-bottom, #margin-left, #margin-right');
   marginInputs.forEach(input => input.addEventListener('input', resetGrid));
-
-  // 2. Photo Size: Live update on change
-  document.getElementById('photo-size-select').addEventListener('change', ()=>{
-    updatePhotoSizeVariable();
-    resetGrid();
-  });
-  
-  // 3. Paper Size: Live update on change
+  document.getElementById('photo-size-select').addEventListener('change', ()=>{ updatePhotoSizeVariable(); resetGrid(); });
   document.getElementById('paper-size-select').addEventListener('change', resetGrid);
-
-  // 4. Layout Selection: Live update on change and toggle custom options
   document.getElementById('layout-select').addEventListener('change', ()=>{
     document.getElementById('custom-layout-options').style.display = document.getElementById('layout-select').value === 'custom' ? 'block' : 'none';
     resetGrid();
   });
-  
-  // 5. Custom Columns/Rows: Live update on input
   document.getElementById('custom-cols').addEventListener('input', resetGrid);
   document.getElementById('custom-rows').addEventListener('input', resetGrid);
 
-  // --- END OF LIVE UPDATE BINDINGS ---
-  
   // Initial setup
   updatePhotoSizeVariable();
   calculateLayout();
@@ -848,11 +930,11 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   // keyboard escape to close modal
   window.addEventListener('keydown', (e)=>{ if (e.key === 'Escape' && editorModal.style.display === 'block') closeModal(); });
+  
+  
 });
 
 /* End of script */
 </script>
 </body>
 </html>
-
-
